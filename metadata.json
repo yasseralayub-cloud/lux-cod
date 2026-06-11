@@ -1,0 +1,6 @@
+{
+  "name": "LuxCod",
+  "description": "Premium Multilingual Digital Agency Platform for LuxCod. Specializing in high-end web design, WhatsApp bot automation, and NFC solutions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

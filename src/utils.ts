@@ -52,9 +52,29 @@ export async function sendTelegramNotification(
         message
       })
     });
-    return response.ok;
+    
+    if (response.ok) {
+      return true;
+    }
   } catch (error) {
-    console.error('Error sending Telegram notification via server:', error);
+    console.warn('Backend Telegram post failed or unavailable. Falling back to direct layout...', error);
+  }
+
+  // Direct safe client-side browser fallback when backend endpoints return 404/500 (like on unconfigured Vercel static environments)
+  try {
+    const directUrl = `https://api.telegram.org/bot${token}/sendMessage`;
+    const directResponse = await fetch(directUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        parse_mode: 'HTML'
+      })
+    });
+    return directResponse.ok;
+  } catch (directError) {
+    console.error('Direct browser-to-telegram API fallback also failed:', directError);
     return false;
   }
 }

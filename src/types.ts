@@ -78,6 +78,10 @@ export interface SiteSettings {
   telegramBotToken?: string;
   telegramChatId?: string;
   telegramEnabled?: boolean;
+  externalApiUrl?: string;
+  externalApiKey?: string;
+  externalApiEnabled?: boolean;
+  externalApiMethod?: 'POST' | 'PUT';
 }
 
 export interface ConsultationLead {

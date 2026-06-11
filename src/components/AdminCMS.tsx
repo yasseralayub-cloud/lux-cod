@@ -1193,12 +1193,93 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                 )}
               </div>
 
+              {/* HIGH-FIDELITY DYNAMIC EXTERNAL API INTEGRATION SETTINGS */}
+              <div className="p-5 rounded-xl border border-dashed border-cyan-500/20 bg-cyan-950/5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-extrabold text-xs text-cyan-400 flex items-center gap-1.5 uppercase tracking-wide">
+                      <Sparkles className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+                      {lang === 'ar' ? 'الربط الديناميكي ومزامنة البيانات مع API خارجي' : 'External Dynamic API Database Integration'}
+                    </h4>
+                    <p className="text-[10px] text-slate-400 mt-1 max-w-xl">
+                      {lang === 'ar' 
+                        ? 'قم بتفعيل هذا الخيار لربط الموقع بقاعدة بيانات REST أو JSON خارجي (مثل JSONBin أو MockAPI أو مخدمك الخاص). يضمن بقاء التعديلات ديناميكية وحية عند تشغيل الموقع على منصات الاستضافة الثابتة مثل Vercel.' 
+                        : 'Optionally sync live data updates directly with a remote REST/JSON API URL (e.g. JSONBin, custom server or KV). Keeps website settings dynamic on static hosting sites like Vercel.'}
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer select-none">
+                    <input 
+                      type="checkbox" 
+                      className="sr-only peer" 
+                      checked={!!siteSettings.externalApiEnabled} 
+                      onChange={(e) => setSiteSettings({ ...siteSettings, externalApiEnabled: e.target.checked })}
+                    />
+                    <div className="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-300 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-400"></div>
+                  </label>
+                </div>
+
+                {siteSettings.externalApiEnabled && (
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-4 pt-2">
+                    <div className="md:col-span-6">
+                      <label className="block text-[10px] text-slate-300 font-mono mb-2">
+                        {lang === 'ar' ? 'رابط الـ API الخارجي (URL Endpoint)' : 'EXTERNAL API ENDPOINT URL'}
+                      </label>
+                      <input
+                        type="url"
+                        required
+                        placeholder="https://api.jsonbin.io/v3/b/MY_BIN_ID or custom server"
+                        value={siteSettings.externalApiUrl || ''}
+                        onChange={(e) => setSiteSettings({ ...siteSettings, externalApiUrl: e.target.value })}
+                        className="w-full p-2.5 rounded-lg border text-xs bg-slate-950 border-slate-800 text-white font-mono"
+                      />
+                      <p className="text-[9px] text-slate-500 mt-1">
+                        {lang === 'ar' 
+                          ? 'الرابط الذي سيقوم المخدم أو المتصفح بإرسال طلبات الـ GET و PUT إليه لقراءة وحفظ البيانات.' 
+                          : 'Requests GET (load) and PUT/POST (save) will be automatically triggered to this endpoint.'}
+                      </p>
+                    </div>
+
+                    <div className="md:col-span-4">
+                      <label className="block text-[10px] text-slate-300 font-mono mb-2">
+                        {lang === 'ar' ? 'مفتاح الترخيص / الرمز السري (الخياري)' : 'API SECRET KEY / TOKEN (OPTIONAL)'}
+                      </label>
+                      <input
+                        type="password"
+                        placeholder="e.g. Bearer token or master-key"
+                        value={siteSettings.externalApiKey || ''}
+                        onChange={(e) => setSiteSettings({ ...siteSettings, externalApiKey: e.target.value })}
+                        className="w-full p-2.5 rounded-lg border text-xs bg-slate-950 border-slate-800 text-white font-mono"
+                      />
+                      <p className="text-[9px] text-slate-500 mt-1">
+                        {lang === 'ar' 
+                          ? 'سيتم إرفاقه تلقائياً في خانات الهيدرز (Authorization)' 
+                          : 'Passed in authorization/X-Api-Key headers automatically.'}
+                      </p>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-[10px] text-slate-300 font-mono mb-2">
+                        {lang === 'ar' ? 'طريقة الحفظ' : 'HTTP METHOD'}
+                      </label>
+                      <select
+                        value={siteSettings.externalApiMethod || 'PUT'}
+                        onChange={(e) => setSiteSettings({ ...siteSettings, externalApiMethod: e.target.value as any })}
+                        className="w-full p-2.5 rounded-lg border text-xs bg-slate-950 border-slate-800 text-slate-300 font-mono"
+                      >
+                        <option value="PUT">PUT</option>
+                        <option value="POST">POST</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <button
                 type="submit"
-                className="px-6 py-2.5 rounded-xl text-slate-950 font-bold text-xs bg-cyan-400 flex items-center gap-1.5 cursor-pointer"
+                className="px-6 py-2.5 rounded-xl text-slate-950 font-bold text-xs bg-cyan-400 flex items-center gap-1.5 cursor-pointer hover:bg-cyan-300 transition-all select-none"
               >
                 <Save className="w-4 h-4 text-slate-950" />
-                <span>{lang === 'ar' ? 'حفظ إعدادات المخدم' : 'Apply Settings Parameter'}</span>
+                <span>{lang === 'ar' ? 'حفظ إعدادات المخدم والـ API' : 'Apply Settings Parameter'}</span>
               </button>
             </form>
           )}

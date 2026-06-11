@@ -67,78 +67,175 @@ export default function App() {
     localStorage.setItem('luxcod_active_view', activeView);
   }, [activeView]);
 
-  // Load live CMS settings from server-side database
+  // Resolves the active external API config (checking localStorage first, then env variables)
+  const getExternalApiConfig = () => {
+    let localUrl = '';
+    let localKey = '';
+    let localEnabled = false;
+    let localMethod: 'POST' | 'PUT' = 'PUT';
+    
+    try {
+      const savedSettingsRaw = localStorage.getItem('luxcod_site_settings');
+      if (savedSettingsRaw) {
+        const parsed = JSON.parse(savedSettingsRaw);
+        if (parsed.externalApiUrl) {
+          localUrl = parsed.externalApiUrl;
+          localKey = parsed.externalApiKey || '';
+          localEnabled = parsed.externalApiEnabled ?? false;
+          localMethod = parsed.externalApiMethod || 'PUT';
+        }
+      }
+    } catch (e) {
+      console.warn('Could not read site settings from localstorage', e);
+    }
+
+    const envUrl = (import.meta as any).env?.VITE_EXTERNAL_API_URL || '';
+    const envKey = (import.meta as any).env?.VITE_EXTERNAL_API_KEY || '';
+    const envEnabled = !!envUrl;
+    const envMethod = ((import.meta as any).env?.VITE_EXTERNAL_API_METHOD as 'POST' | 'PUT') || 'PUT';
+
+    if (localUrl) {
+      return {
+        url: localUrl,
+        key: localKey,
+        enabled: localEnabled,
+        method: localMethod
+      };
+    }
+
+    return {
+      url: envUrl,
+      key: envKey,
+      enabled: envEnabled,
+      method: envMethod
+    };
+  };
+
+  // Load live CMS settings from server-side database (or direct external API)
   useEffect(() => {
-    fetch('/api/load-cms?t=' + Date.now(), { cache: 'no-store' })
-      .then(res => {
-        if (res.ok) return res.json();
-        throw new Error('No custom db file yet');
-      })
-      .then(data => {
-        if (data) {
-          if (data.projects) {
-            setProjects(data.projects);
-            dbStore.saveProjects(data.projects);
-          }
-          if (data.services) {
-            setServices(data.services);
-            dbStore.saveServices(data.services);
-          }
-          if (data.reviews) {
-            const hasOldMocks = data.reviews.some((r: any) => 
-              (r.name && r.name.includes('حي الملقا')) || 
-              (r.name && r.name.includes('شركة زن الصحي')) || 
-              (r.name && r.name.includes('السباك شاهر بالرياض')) ||
-              (r.comment && r.comment.includes('عيادة الجمال')) ||
-              (r.comment && r.comment.includes('زن الصحي'))
-            );
-            if (hasOldMocks || data.reviews.length < 5) {
-              setReviews(DEFAULT_REVIEWS);
-              dbStore.saveReviews(DEFAULT_REVIEWS);
-              // Directly save back to server to correct the JSON DB file
-              saveToServer('reviews', DEFAULT_REVIEWS);
+    const loadCmsData = async () => {
+      const apiConfig = getExternalApiConfig();
+      let cmsData: any = null;
+      let loadedFromExternal = false;
+
+      // Try fetching from remote External API URL directly (handles pure static frontends like Vercel Static)
+      if (apiConfig.enabled && apiConfig.url) {
+        try {
+          console.log('Fetching CMS content from dynamic remote API:', apiConfig.url);
+          const headers: Record<string, string> = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          };
+          if (apiConfig.key) {
+            if (apiConfig.key.toLowerCase().startsWith('bearer ') || apiConfig.key.toLowerCase().startsWith('token ')) {
+              headers['Authorization'] = apiConfig.key;
             } else {
-              setReviews(data.reviews);
-              dbStore.saveReviews(data.reviews);
+              headers['X-Api-Key'] = apiConfig.key;
+              headers['Authorization'] = `Bearer ${apiConfig.key}`;
             }
+          }
+          
+          const response = await fetch(apiConfig.url, { 
+            method: 'GET',
+            headers,
+            cache: 'no-store'
+          });
+
+          if (response.ok) {
+            const rawData = await response.json();
+            // Automatically unwrap nested structures like JSONBin's .record key
+            if (rawData && rawData.record) {
+              cmsData = rawData.record;
+            } else if (rawData && rawData.data && (rawData.data.projects || rawData.data.reviews)) {
+              cmsData = rawData.data;
+            } else {
+              cmsData = rawData;
+            }
+            loadedFromExternal = true;
+            console.log('Successfully loaded data from remote external API URL directly.');
           } else {
+            console.warn('External URL status was not OK, trying local server endpoint proxy...', response.status);
+          }
+        } catch (apiErr) {
+          console.error('Failed direct loading from remote API. Attempting backend fallback:', apiErr);
+        }
+      }
+
+      // Local / Express Proxy Fallback
+      if (!loadedFromExternal) {
+        try {
+          const res = await fetch('/api/load-cms?t=' + Date.now(), { cache: 'no-store' });
+          if (res.ok) {
+            cmsData = await res.json();
+          }
+        } catch (localErr) {
+          console.log('Server unreachable. Cache or default templates will be used...', localErr);
+        }
+      }
+
+      // Feed state variables with compiled values
+      if (cmsData) {
+        if (cmsData.projects && cmsData.projects.length > 0) {
+          setProjects(cmsData.projects);
+          dbStore.saveProjects(cmsData.projects);
+        }
+        if (cmsData.services && cmsData.services.length > 0) {
+          setServices(cmsData.services);
+          dbStore.saveServices(cmsData.services);
+        }
+        if (cmsData.reviews) {
+          const hasOldMocks = cmsData.reviews.some((r: any) => 
+            (r.name && r.name.includes('حي الملقا')) || 
+            (r.name && r.name.includes('شركة زن الصحي')) || 
+            (r.name && r.name.includes('السباك شاهر بالرياض')) ||
+            (r.comment && r.comment.includes('عيادة الجمال')) ||
+            (r.comment && r.comment.includes('زن الصحي'))
+          );
+          if (hasOldMocks || cmsData.reviews.length < 5) {
             setReviews(DEFAULT_REVIEWS);
             dbStore.saveReviews(DEFAULT_REVIEWS);
             saveToServer('reviews', DEFAULT_REVIEWS);
+          } else {
+            setReviews(cmsData.reviews);
+            dbStore.saveReviews(cmsData.reviews);
           }
-          if (data.content) {
-            setContent(data.content);
-            dbStore.saveContentSettings(data.content);
-          }
-          if (data.seo) {
-            setSeo(data.seo);
-            dbStore.saveSEOSettings(data.seo);
-          }
-          if (data.siteSettings) {
-            setSiteSettings(data.siteSettings);
-            dbStore.saveSiteSettings(data.siteSettings);
-          }
-          if (data.leads) {
-            setLeads(data.leads);
-            dbStore.saveLeads(data.leads);
-          }
+        } else {
+          setReviews(DEFAULT_REVIEWS);
+          dbStore.saveReviews(DEFAULT_REVIEWS);
+          saveToServer('reviews', DEFAULT_REVIEWS);
         }
-        // Small delay to allow React to apply state updates and avoid race-conditions with active saving effects
-        setTimeout(() => {
-          setIsLoaded(true);
-        }, 300);
-      })
-      .catch(err => {
-        console.log('Defaults or cache loaded:', err);
-        setTimeout(() => {
-          setIsLoaded(true);
-        }, 300);
-      });
+        if (cmsData.content) {
+          setContent(cmsData.content);
+          dbStore.saveContentSettings(cmsData.content);
+        }
+        if (cmsData.seo) {
+          setSeo(cmsData.seo);
+          dbStore.saveSEOSettings(cmsData.seo);
+        }
+        if (cmsData.siteSettings) {
+          setSiteSettings(cmsData.siteSettings);
+          dbStore.saveSiteSettings(cmsData.siteSettings);
+        }
+        if (cmsData.leads) {
+          setLeads(cmsData.leads);
+          dbStore.saveLeads(cmsData.leads);
+        }
+      }
+
+      // Avoid immediate saving ticks
+      setTimeout(() => {
+        setIsLoaded(true);
+      }, 300);
+    };
+
+    loadCmsData();
   }, []);
 
   // Helper to persist changes dynamically to server
   const saveToServer = async (key: string, data: any) => {
     if (!isLoaded) return;
+    
+    // 1. Submit update payload to standard local Express server-side file
     try {
       await fetch('/api/save-cms', {
         method: 'POST',
@@ -146,7 +243,61 @@ export default function App() {
         body: JSON.stringify({ key, data })
       });
     } catch (err) {
-      console.error(`Failed to sync key: ${key} to backend server`, err);
+      console.warn(`Local save-cms endpoint bypassed or failed for '${key}' key. This is expected on static hosts like Vercel.`, err);
+    }
+
+    // 2. Submit full synchronized CMS backup to external remote API if enabled 
+    const apiConfig = getExternalApiConfig();
+    if (apiConfig.enabled && apiConfig.url) {
+      try {
+        const fullBackupPayload = {
+          projects: dbStore.getProjects(),
+          services: dbStore.getServices(),
+          reviews: dbStore.getReviews(),
+          content: dbStore.getContentSettings(),
+          seo: dbStore.getSEOSettings(),
+          siteSettings: dbStore.getSiteSettings(),
+          leads: dbStore.getLeads()
+        };
+
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        };
+
+        if (apiConfig.key) {
+          if (apiConfig.key.toLowerCase().startsWith('bearer ') || apiConfig.key.toLowerCase().startsWith('token ')) {
+            headers['Authorization'] = apiConfig.key;
+          } else {
+            headers['X-Api-Key'] = apiConfig.key;
+            headers['Authorization'] = `Bearer ${apiConfig.key}`;
+          }
+        }
+
+        // Send full JSON backup mapping the file structures
+        const response = await fetch(apiConfig.url, {
+          method: apiConfig.method,
+          headers,
+          body: JSON.stringify(fullBackupPayload)
+        });
+
+        if (response.ok) {
+          console.log(`Successfully synced full CMS database backup dynamically to: ${apiConfig.url} (${apiConfig.method})`);
+        } else {
+          console.warn(`External remote API save status code: ${response.status}. Trying partial key/value format fallback...`);
+          // Try single key delta body in case endpoint uses custom key/value router mapping
+          const altResponse = await fetch(apiConfig.url, {
+            method: apiConfig.method,
+            headers,
+            body: JSON.stringify({ key, data })
+          });
+          if (altResponse.ok) {
+            console.log('Successfully written via Key-Value fallback payload format!');
+          }
+        }
+      } catch (externalErr) {
+        console.error('Failed writing states layout to dynamic remote API URL:', externalErr);
+      }
     }
   };
 

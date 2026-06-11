@@ -386,5 +386,9 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   },
   telegramBotToken: '',
   telegramChatId: '',
-  telegramEnabled: false
+  telegramEnabled: false,
+  externalApiUrl: '',
+  externalApiKey: '',
+  externalApiEnabled: false,
+  externalApiMethod: 'PUT'
 };

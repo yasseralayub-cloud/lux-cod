@@ -115,13 +115,57 @@ export default function App() {
   useEffect(() => {
     const loadCmsData = async () => {
       const apiConfig = getExternalApiConfig();
-      let cmsData: any = null;
-      let loadedFromExternal = false;
+      let localCmsData: any = null;
 
-      // Try fetching from remote External API URL directly (handles pure static frontends like Vercel Static)
+      // 1. ALWAYS load primary local database as core ground truth first
+      try {
+        const res = await fetch('/api/load-cms?t=' + Date.now(), { cache: 'no-store' });
+        if (res.ok) {
+          localCmsData = await res.json();
+        }
+      } catch (localErr) {
+        console.log('Server unreachable. Cache or default templates will be used...', localErr);
+      }
+
+      // Apply initial primary database values to the app state
+      if (localCmsData) {
+        if (localCmsData.projects && localCmsData.projects.length > 0) {
+          setProjects(localCmsData.projects);
+          dbStore.saveProjects(localCmsData.projects);
+        }
+        if (localCmsData.services && localCmsData.services.length > 0) {
+          setServices(localCmsData.services);
+          dbStore.saveServices(localCmsData.services);
+        }
+        if (localCmsData.reviews && localCmsData.reviews.length > 0) {
+          setReviews(localCmsData.reviews);
+          dbStore.saveReviews(localCmsData.reviews);
+        } else {
+          setReviews(DEFAULT_REVIEWS);
+          dbStore.saveReviews(DEFAULT_REVIEWS);
+        }
+        if (localCmsData.content) {
+          setContent(localCmsData.content);
+          dbStore.saveContentSettings(localCmsData.content);
+        }
+        if (localCmsData.seo) {
+          setSeo(localCmsData.seo);
+          dbStore.saveSEOSettings(localCmsData.seo);
+        }
+        if (localCmsData.siteSettings) {
+          setSiteSettings(localCmsData.siteSettings);
+          dbStore.saveSiteSettings(localCmsData.siteSettings);
+        }
+        if (localCmsData.leads) {
+          setLeads(localCmsData.leads);
+          dbStore.saveLeads(localCmsData.leads);
+        }
+      }
+
+      // 2. Overlay live external API values if enabled & available
       if (apiConfig.enabled && apiConfig.url) {
         try {
-          console.log('Fetching CMS content from dynamic remote API:', apiConfig.url);
+          console.log('Fetching CMS content overlay from dynamic remote API:', apiConfig.url);
           const headers: Record<string, string> = {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
@@ -143,82 +187,126 @@ export default function App() {
 
           if (response.ok) {
             const rawData = await response.json();
+            let externalCms: any = null;
+
             // Automatically unwrap nested structures like JSONBin's .record key
             if (rawData && rawData.record) {
-              cmsData = rawData.record;
+              externalCms = rawData.record;
             } else if (rawData && rawData.data && (rawData.data.projects || rawData.data.reviews)) {
-              cmsData = rawData.data;
+              externalCms = rawData.data;
             } else {
-              cmsData = rawData;
+              externalCms = rawData;
             }
-            loadedFromExternal = true;
-            console.log('Successfully loaded data from remote external API URL directly.');
-          } else {
-            console.warn('External URL status was not OK, trying local server endpoint proxy...', response.status);
+
+            if (externalCms) {
+              // Smart handler: If the external REST API returned a raw Array of projects directly
+              if (Array.isArray(externalCms)) {
+                if (externalCms.length > 0) {
+                  // Ensure these objects represent projects (by checking for name/category keys)
+                  const isProjectsList = externalCms.every(item => item && (item.nameAr || item.nameEn));
+                  if (isProjectsList) {
+                    setProjects(prev => {
+                      // Non-destructive merge: keep any local projects that aren't in the external API
+                      const merged = [...prev];
+                      externalCms.forEach((extItem: any) => {
+                        const idx = merged.findIndex(p => p.id === extItem.id);
+                        if (idx >= 0) {
+                          merged[idx] = { ...merged[idx], ...extItem };
+                        } else {
+                          merged.push(extItem);
+                        }
+                      });
+                      dbStore.saveProjects(merged);
+                      return merged;
+                    });
+                    console.log('Successfully merged raw projects list from external REST API - no local creations deleted!');
+                  }
+                }
+              } else {
+                // Standard full CMS JSON object payload
+                if (externalCms.projects && externalCms.projects.length > 0) {
+                  setProjects(prev => {
+                    const merged = [...prev];
+                    externalCms.projects.forEach((extItem: any) => {
+                      const idx = merged.findIndex(p => p.id === extItem.id);
+                      if (idx >= 0) {
+                        merged[idx] = { ...merged[idx], ...extItem };
+                      } else {
+                        merged.push(extItem);
+                      }
+                    });
+                    dbStore.saveProjects(merged);
+                    return merged;
+                  });
+                }
+                if (externalCms.services && externalCms.services.length > 0) {
+                  setServices(prev => {
+                    const merged = [...prev];
+                    externalCms.services.forEach((extItem: any) => {
+                      const idx = merged.findIndex(s => s.id === extItem.id);
+                      if (idx >= 0) {
+                        merged[idx] = { ...merged[idx], ...extItem };
+                      } else {
+                        merged.push(extItem);
+                      }
+                    });
+                    dbStore.saveServices(merged);
+                    return merged;
+                  });
+                }
+                if (externalCms.reviews && externalCms.reviews.length > 0) {
+                  setReviews(prev => {
+                    const merged = [...prev];
+                    externalCms.reviews.forEach((extItem: any) => {
+                      const idx = merged.findIndex(r => r.id === extItem.id);
+                      if (idx >= 0) {
+                        merged[idx] = { ...merged[idx], ...extItem };
+                      } else {
+                        merged.push(extItem);
+                      }
+                    });
+                    dbStore.saveReviews(merged);
+                    return merged;
+                  });
+                }
+                if (externalCms.content) {
+                  setContent(prev => {
+                    const next = { ...prev, ...externalCms.content };
+                    dbStore.saveContentSettings(next);
+                    return next;
+                  });
+                }
+                if (externalCms.seo) {
+                  setSeo(prev => {
+                    const next = { ...prev, ...externalCms.seo };
+                    dbStore.saveSEOSettings(next);
+                    return next;
+                  });
+                }
+                if (externalCms.siteSettings) {
+                  setSiteSettings(prev => {
+                    const next = { ...prev, ...externalCms.siteSettings };
+                    dbStore.saveSiteSettings(next);
+                    return next;
+                  });
+                }
+                if (externalCms.leads) {
+                  setLeads(prev => {
+                    const merged = [...prev];
+                    externalCms.leads.forEach((extItem: any) => {
+                      if (!merged.some(m => m.id === extItem.id)) {
+                        merged.push(extItem);
+                      }
+                    });
+                    dbStore.saveLeads(merged);
+                    return merged;
+                  });
+                }
+              }
+            }
           }
         } catch (apiErr) {
-          console.error('Failed direct loading from remote API. Attempting backend fallback:', apiErr);
-        }
-      }
-
-      // Local / Express Proxy Fallback
-      if (!loadedFromExternal) {
-        try {
-          const res = await fetch('/api/load-cms?t=' + Date.now(), { cache: 'no-store' });
-          if (res.ok) {
-            cmsData = await res.json();
-          }
-        } catch (localErr) {
-          console.log('Server unreachable. Cache or default templates will be used...', localErr);
-        }
-      }
-
-      // Feed state variables with compiled values
-      if (cmsData) {
-        if (cmsData.projects && cmsData.projects.length > 0) {
-          setProjects(cmsData.projects);
-          dbStore.saveProjects(cmsData.projects);
-        }
-        if (cmsData.services && cmsData.services.length > 0) {
-          setServices(cmsData.services);
-          dbStore.saveServices(cmsData.services);
-        }
-        if (cmsData.reviews) {
-          const hasOldMocks = cmsData.reviews.some((r: any) => 
-            (r.name && r.name.includes('حي الملقا')) || 
-            (r.name && r.name.includes('شركة زن الصحي')) || 
-            (r.name && r.name.includes('السباك شاهر بالرياض')) ||
-            (r.comment && r.comment.includes('عيادة الجمال')) ||
-            (r.comment && r.comment.includes('زن الصحي'))
-          );
-          if (hasOldMocks || cmsData.reviews.length < 5) {
-            setReviews(DEFAULT_REVIEWS);
-            dbStore.saveReviews(DEFAULT_REVIEWS);
-            saveToServer('reviews', DEFAULT_REVIEWS);
-          } else {
-            setReviews(cmsData.reviews);
-            dbStore.saveReviews(cmsData.reviews);
-          }
-        } else {
-          setReviews(DEFAULT_REVIEWS);
-          dbStore.saveReviews(DEFAULT_REVIEWS);
-          saveToServer('reviews', DEFAULT_REVIEWS);
-        }
-        if (cmsData.content) {
-          setContent(cmsData.content);
-          dbStore.saveContentSettings(cmsData.content);
-        }
-        if (cmsData.seo) {
-          setSeo(cmsData.seo);
-          dbStore.saveSEOSettings(cmsData.seo);
-        }
-        if (cmsData.siteSettings) {
-          setSiteSettings(cmsData.siteSettings);
-          dbStore.saveSiteSettings(cmsData.siteSettings);
-        }
-        if (cmsData.leads) {
-          setLeads(cmsData.leads);
-          dbStore.saveLeads(cmsData.leads);
+          console.error('Failed direct loading from remote API. Keeping standard local database:', apiErr);
         }
       }
 
@@ -319,46 +407,68 @@ export default function App() {
 
   // Sync state changes with local cache storage and server-side DB
   // Guarded specifically with `isAdmin` so regular users never overwrite values with local browser state
+  // Optimized: Instant local storage cache writes paired with a 1-second debounced server save
   useEffect(() => {
     if (!isLoaded || !isAdmin) return;
     dbStore.saveProjects(projects);
-    saveToServer('projects', projects);
+    const handler = setTimeout(() => {
+      saveToServer('projects', projects);
+    }, 1000);
+    return () => clearTimeout(handler);
   }, [projects, isLoaded, isAdmin]);
 
   useEffect(() => {
     if (!isLoaded || !isAdmin) return;
     dbStore.saveServices(services);
-    saveToServer('services', services);
+    const handler = setTimeout(() => {
+      saveToServer('services', services);
+    }, 1000);
+    return () => clearTimeout(handler);
   }, [services, isLoaded, isAdmin]);
 
   useEffect(() => {
     if (!isLoaded || !isAdmin) return;
     dbStore.saveContentSettings(content);
-    saveToServer('content', content);
+    const handler = setTimeout(() => {
+      saveToServer('content', content);
+    }, 1000);
+    return () => clearTimeout(handler);
   }, [content, isLoaded, isAdmin]);
 
   useEffect(() => {
     if (!isLoaded || !isAdmin) return;
     dbStore.saveSEOSettings(seo);
-    saveToServer('seo', seo);
+    const handler = setTimeout(() => {
+      saveToServer('seo', seo);
+    }, 1000);
+    return () => clearTimeout(handler);
   }, [seo, lang, isLoaded, isAdmin]); // Updates title matching exact active language settings
 
   useEffect(() => {
     if (!isLoaded || !isAdmin) return;
     dbStore.saveSiteSettings(siteSettings);
-    saveToServer('siteSettings', siteSettings);
+    const handler = setTimeout(() => {
+      saveToServer('siteSettings', siteSettings);
+    }, 1000);
+    return () => clearTimeout(handler);
   }, [siteSettings, isLoaded, isAdmin]);
 
   useEffect(() => {
     if (!isLoaded || !isAdmin) return;
     dbStore.saveReviews(reviews);
-    saveToServer('reviews', reviews);
+    const handler = setTimeout(() => {
+      saveToServer('reviews', reviews);
+    }, 1000);
+    return () => clearTimeout(handler);
   }, [reviews, isLoaded, isAdmin]);
 
   useEffect(() => {
     if (!isLoaded || !isAdmin) return;
     dbStore.saveLeads(leads);
-    saveToServer('leads', leads);
+    const handler = setTimeout(() => {
+      saveToServer('leads', leads);
+    }, 1000);
+    return () => clearTimeout(handler);
   }, [leads, isLoaded, isAdmin]);
 
   useEffect(() => {
@@ -384,32 +494,84 @@ export default function App() {
 
   // Background content policy validation checks for profanity, bad words, incitement to violence or hatred
   const isViolatingContentPolicy = (nameText: string, commentText: string): boolean => {
-    const textToScan = `${nameText} ${commentText}`.toLowerCase();
+    // 1. Gold-standard Arabic text normalization
+    const normalizeArabic = (text: string): string => {
+      return text
+        .replace(/[\u0640]/g, '') // Remove Tatweel/Kashida (ـ)
+        .replace(/[\u064B-\u065F]/g, '') // Remove Arabic diacritics (harakat like fatha, damma, kasra, shadda)
+        .replace(/[أإآ]/g, 'ا') // Standardize Alef variations to bare Alef
+        .replace(/ة/g, 'ه') // Standardize Teh Marbuta to Heh
+        .replace(/ى/g, 'ي') // Standardize Alef Maksura to Yeh
+        .replace(/(.)\1{2,}/g, '$1'); // Collapse repeated letters (e.g. "طيزززز" -> "طيز", "خرااا" -> "خرا")
+    };
+
+    const originalText = `${nameText} ${commentText}`.toLowerCase();
+    const normalizedText = normalizeArabic(originalText);
     
-    // Background moderation list (hidden from the customer, targeting profanity, violence, and hate-speech)
-    const badWords = [
-      // Profanity & common hostile insults (Arabic)
-      'كلب', 'كلاب', 'حمار', 'حمير', 'حيوان', 'حيوانات', 'حقير', 'حقارة', 'سافل', 'سفالة', 'قذر', 'قذارة', 'تفاهة', 'تفه',
-      'غبي', 'غباء', 'كذاب', 'كذب', 'احتيال', 'محتال', 'نصاب', 'سرقة', 'سارق', 'لعن', 'لعنة', 'ملعون', 'زق', 'خرا', 'تخص',
-      'يا بن', 'ابن ال', 'امك', 'أختك', 'شتم', 'شتيمة', 'عاهر', 'عاهرة', 'ديوث', 'عرص', 'قحبة', 'منيك', 'شرموط', 'شرموطة',
-      
-      // Violence, threats, and harassment (Arabic)
-      'قتل', 'موت', 'ذبح', 'إرهاب', 'ارهاب', 'تفجير', 'سلاح', 'مسدس', 'قنبلة', 'تعذيب', 'طائفية', 'طائفي', 'عنصرية', 'عنصري',
-      'كراهية', 'اكره', 'أكره', 'دموي', 'سنتخلص', 'تهديد', 'اضرب', 'ضرب', 'حرب', 'خراب', 'تدمير', 'داعش',
-      
-      // English profanities, bad words, and violent threats
+    // Set 1: Exclusive profanity stems - safe to match anywhere as substrings (never part of any standard innocent Arabic words)
+    const explicitSubstrings = [
+      'طيز', 'طياز', 'اطياز', 'تطيز',
+      'نيك', 'منيك', 'منيوك', 'تناك', 'تنكح', 'يتناك', 'انيك', 'تناكه', 'امنيب',
+      'شرموط', 'شرمط', 'شرمو',
+      'قحب', 'قحاب',
+      'ديوث', 'دياث',
+      'عرص', 'معرص',
+      'بظر',
+      'خصي', 'خصيه', 'خصية', 'خصاو',
+      'سكس'
+    ];
+
+    if (explicitSubstrings.some(word => normalizedText.includes(word))) {
+      return true;
+    }
+
+    // Set 2: Common terms and insults - matched with smart boundaries to prevent false positives (e.g. "زب" vs "زبون")
+    const boundaryWords = [
+      'زب', 'زبي', 'ازب',
+      'كس', 'كسك', 'كسخ', 'كسخت',
+      'خرا', 'خراء',
+      'زق', 'بول',
+      'وسخ', 'اوساخ', 'قذر', 'قذارة', 'حقير', 'حقارة', 'سافل', 'سفالة',
+      'حمار', 'حمير', 'كلب', 'كلاب', 'حيوان', 'حيوانات', 'جحش',
+      'نصاب', 'احتيال', 'محتال', 'حرامي', 'حرامية', 'سرق', 'سرقة', 'سارق', 'سرقونا',
+      'كذاب', 'كذب', 'دجال', 'فاشل', 'فاشلين', 'ملعون', 'لعن', 'لعنة', 'يلعن', 'تفو'
+    ];
+
+    const hasBoundaryViolation = boundaryWords.some(word => {
+      // Setup dynamic regex checking for space boundaries as well as common Arabic prefixes (الـ، ياـ، بـ، لـ، وـ)
+      // and common Arabic suffixes (ـنا، ـكم، ـهم، ـه، ـي، ـك، ـين، ـون، ـات، ـه)
+      const patternStr = `(?:\\b|\\s|^)(?:ال|يا|ب|ل|و|ف|ك)?${word}(?:نا|كم|هم|ه|ي|ك|ين|ون|ات|ة)?(?:\\b|\\s|$)`;
+      const regex = new RegExp(patternStr, 'i');
+      return regex.test(normalizedText) || regex.test(originalText);
+    });
+
+    if (hasBoundaryViolation) {
+      return true;
+    }
+
+    // Set 3: Violent threat indicators / incitements
+    const violencePatterns = [
+      'قتل', 'موت', 'ذبح', 'إرهاب', 'ارهاب', 'تفجير', 'سلاح', 'مسدس', 'قنبلة', 'تعذيب', 
+      'طائفية', 'طائفي', 'عنصرية', 'عنصري', 'كراهية', 'اكره', 'أكره', 'دموي', 'تهديد'
+    ];
+
+    if (violencePatterns.some(word => normalizedText.includes(word))) {
+      return true;
+    }
+
+    // Set 4: English profanities and violent threats
+    const englishWords = [
       'fuck', 'shit', 'bitch', 'asshole', 'bastard', 'cunt', 'dick', 'pussy', 'idiot', 'dumb', 'stupid', 'retard',
       'kill', 'murder', 'slay', 'death', 'die', 'threat', 'weapon', 'gun', 'bomb', 'terror', 'violence', 'blood',
       'scam', 'fraud', 'cheat', 'scammer', 'fake', 'liar', 'racist', 'hate', 'abusive'
     ];
 
-    return badWords.some(word => {
-      if (/^[a-zA-Z]+$/.test(word)) {
-        const rx = new RegExp(`\\b${word}\\b`, 'i');
-        return rx.test(textToScan);
-      }
-      return textToScan.includes(word);
+    const hasEnglishViolation = englishWords.some(word => {
+      const regex = new RegExp(`\\b${word}\\b`, 'i');
+      return regex.test(originalText);
     });
+
+    return hasEnglishViolation;
   };
 
   // Handle client reviews submissions

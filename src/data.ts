@@ -2,60 +2,98 @@ import { Project, Service, Review, ContentSettings, SEOSettings, SiteSettings } 
 
 export const DEFAULT_PROJECTS: Project[] = [
   {
-    id: 'p1',
-    nameAr: 'منصة مجمع الملكة الطبي للتجميل والليزر',
-    nameEn: 'Al-Malka Laser & Aesthetic Clinic Platform',
-    categoryAr: 'جمال وتجميل',
-    categoryEn: 'Beauty & Aesthetics',
-    descAr: 'تصميم وتطوير موقع إلكتروني فاخر وحجز مواعيد أوتوماتيكي متكامل بأحدث واجهات تجربة المستخدم لبناء هوية رقمية متميزة للمجمع.',
-    descEn: 'High-end bespoke digital booking portal and brand identity developed for Al-Malka laser cosmetic clinic.',
-    longDescAr: 'تم تصميم وتطوير هذه المنصة لحل مشاكل حجز الغرف التجميلية وتنسيق المواعيد التلقائية مع العملاء عبر الواتساب. يسهم الموقع في تعريف الزبائن بأحدث باقات العروض وتتبع الجلسات الطبية المتاحة، مع استخدام تصميم زجاجي أنيق بلمسات مريحة وممتازة.',
-    longDescEn: 'Designed and developed a premium medical spa and skincare website. Features custom appointment workflows, SMS and WhatsApp automation for bookings, responsive galleries, and slate styling.',
-    coverImage: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=800',
-    liveUrl: 'https://wa.me/966506572881',
-    techs: ['React', 'Tailwind CSS', 'Vite', 'Node.js', 'WhatsApp API']
+    id: "p1",
+    nameAr: "صالون ڤيڤيد بيوتي",
+    nameEn: "VIVID BEAUTY",
+    categoryAr: "جمال وتجميل",
+    categoryEn: "Beauty & Aesthetics",
+    descAr: "صالون ڤيڤيد بيوتي | منصة تعريفية فاخرة تطوير وتصميم صفحة هبوط (Landing Page) لصالون \"ڤيڤيد بيوتي\"، تعكس الهوية الأنثوية الراقية والفاخرة للعلامة التجارية. يتميز الموقع بواجهة مستخدم انسيابية وجذابة تعتمد على المؤثرات البصرية المتناغمة، وتتيح للعملاء استعراض قائمة الخدمات المتخصصة (العناية بالشعر، الأظافر، والرموش) مع ربط مباشر وسلس لمنصات التواصل الاجتماعي، قنوات الحجز، وموقع الصالون الجغرافي لتعزيز تجربة المستخدم الرقمية.",
+    descEn: "VIVID BEAUTY Salon | Luxury Landing Page Design and development of a premium landing page for \"VIVID BEAUTY\" Salon, tailored to reflect the brand's elegant and vibrant feminine identity. The website features a seamless, visually stunning user interface with smooth transitions, allowing clients to effortlessly explore specialized services (hair, nails, and lashes). It integrates direct links to social media channels, booking options, and the salon's physical location to deliver an elevated and engaging digital experience.",
+    longDescAr: "تم تصميم وتطوير هذه المنصة لحل مشاكل حجز الغرف التجميلية وتنسيق المواعيد التلقائية مع العملاء عبر الواتساب. يسهم الموقع في تعريف الزبائن بأحدث باقات العروض وتتبع الجلسات الطبية المتاحة، مع استخدام تصميم زجاجي أنيق بلمسات مريحة وممتازة.",
+    longDescEn: "Designed and developed a premium medical spa and skincare website. Features custom appointment workflows, SMS and WhatsApp automation for bookings, responsive galleries, and slate styling.",
+    coverImage: "https://vividbeauty.github.io/-VIVID-BEAUTY/bg4.jpg",
+    liveUrl: "https://vividbeauty.github.io/-VIVID-BEAUTY/",
+    techs: [
+      "React",
+      "Tailwind CSS",
+      "Vite",
+      "Node.js",
+      "WhatsApp API"
+    ]
   },
   {
-    id: 'p2',
-    nameAr: 'بوابة مراكز خدمات سبا زن الصحي للاستجمام',
-    nameEn: 'Therapeutic Zen Wellness Spa Portal',
-    categoryAr: 'مراكز سبا واستجمام',
-    categoryEn: 'Spas & Wellness',
-    descAr: 'تصميم تجربة رقمية ناعمة ونظام تسويق ذكي لتمكين حجز خدمات المساج والجاكوزي والمساحات العلاجية.',
-    descEn: 'A fluid responsive presentation and booking engine developed for luxury Zen Wellness centers.',
-    longDescAr: 'قمنا ببناء بوابة متكاملة تعكس الأجواء الهادئة لمراكز سبا زن. تتيح البوابة حجز الجلسات العلاجية ومقاعد الترفيه الفاخرة بسهولة، وتعمل على تحفيز الزائر بسلاسة فائقة بفضل الحركات المخصصة والانتقالات العصرية الهادئة.',
-    longDescEn: 'A pristine reservation dashboard built for high-end wellness hotels and spa lines. It optimizes therapist shift logs, custom room bookings, and features a clean dark interface layout.',
-    coverImage: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=800',
-    liveUrl: 'https://wa.me/966506572881',
-    techs: ['Vite', 'React SPA', 'Framer Motion', 'TypeScript']
+    id: "p2",
+    nameAr: "ياشيم سبا",
+    nameEn: "YASHIM SPA",
+    categoryAr: "مراكز سبا واستجمام",
+    categoryEn: "Spas & Wellness",
+    descAr: "ياشيم سبا | تجربة رقمية للاسترخاء والرفاهية تطوير وتصميم منصة تعريفية راقية لمركز \"ياشيم سبا\"، تعكس أجواء الهدوء والاستجمام الفاخرة للعلامة التجارية. يتميز الموقع بتصميم عصري وبسيط (Minimalist) يركز على سهولة التصفح، واستعراض باقات العناية والاسترخاء المتكاملة، مع توفير وصول مباشر وسريع لقنوات التواصل، وخرائط جوجل، ومنظومة الحجز الذكي لضمان تجربة مستخدم مريحة ومميزة.",
+    descEn: "YASHIM SPA | Luxury Wellness Landing Page Design and development of an elegant landing page for \"YASHIM SPA\", perfectly capturing the brand's tranquil and luxurious wellness experience. The website boasts a clean, minimalist design with intuitive navigation, showcasing integrated relaxation and self-care packages. It provides seamless access to contact channels, Google Maps location, and booking methods to ensure a smooth and premium user journey.",
+    longDescAr: "قمنا ببناء بوابة متكاملة تعكس الأجواء الهادئة لمراكز سبا زن. تتيح البوابة حجز الجلسات العلاجية ومقاعد الترفيه الفاخرة بسهولة، وتعمل على تحفيز الزائر بسلاسة فائقة بفضل الحركات المخصصة والانتقالات العصرية الهادئة.",
+    longDescEn: "A pristine reservation dashboard built for high-end wellness hotels and spa lines. It optimizes therapist shift logs, custom room bookings, and features a clean dark interface layout.",
+    coverImage: "https://yashimspa.github.io/YASHIM-SPA/logo.png",
+    liveUrl: "https://yashimspa.github.io/YASHIM-SPA/",
+    techs: [
+      "Vite",
+      "React SPA",
+      "Framer Motion",
+      "TypeScript"
+    ]
   },
   {
-    id: 'p3',
-    nameAr: 'موقع السباك شاهر بالرياض التعريفي',
-    nameEn: 'Shaher Plumber Riyadh Portal',
-    categoryAr: 'مواقع وعروض شركات',
-    categoryEn: 'Corporate & Tech',
-    descAr: 'هذا موقع للسباك اسمه شاهر يعرف فيه اعماله ويقدم خدماته ويمكن الاتصال به من خلال الواتس اب او الاتصال من خلال الموقع.',
-    descEn: 'This is a website for a plumber named Shaher where he presents his work, offers his services, and can be contacted via WhatsApp or phone call from the website.',
-    longDescAr: 'موقع تعريفي واحترافي للسباك المتميز شاهر بالرياض، قمنا بتصميمه وتطويره بالكامل ليعرف بخبراته العريضة في كشف تسربات المياه بأحدث الأجهزة الإلكترونية دون تكسير الجدران، وتأسيس وتمديد خطوط السباكة والصرف للفلل السكنية بطرق حديثة. يتيح الموقع للزوار التواصل والطلب المباشر من خلال قنوات الاتصال والواتساب الفورية بضغطة زر واحدة.',
-    longDescEn: 'A high-conversion professional business platform engineered for Shaher the plumber in Riyadh. The platform is designed to list his expert water leak detection, pipe installation, and emergency maintenance services. Visitors can easily dial his mobile line or send pre-filled WhatsApp service requests with a simple tap.',
-    coverImage: 'https://images.unsplash.com/photo-1581094288338-2314dddb7ecc?auto=format&fit=crop&q=80&w=800',
-    liveUrl: 'https://wa.me/966506572881',
-    techs: ['React', 'Click-to-Call API', 'WhatsApp Linker', 'Liquid Grid']
+    id: "p3",
+    nameAr: "موقع السباك شاهر",
+    nameEn: "Shaher Plumbe",
+    categoryAr: "مواقع وعروض شركات",
+    categoryEn: "Corporate & Tech",
+    descAr: "Description) منصة شاهِر للسباكة | هوية رقمية للخدمات المهنية تطوير وتصميم صفحة هبوط (Landing Page) مخصصة لخدمات السباكة \"شاهِر\"، تم بناؤها كمعرض أعمال رقمي يستعرض جودة الخدمات والحلول المهنية المقدمة. يتميز الموقع بواجهة مستخدم بسيطة وعملية، تتيح للعملاء تصفح المشاريع السابقة بسهولة، مع ربط مباشر وسريع لكافة قنوات التواصل الاجتماعي ووسائل الاتصال الفوري لتسهيل طلب الخدمة وزيادة موثوقية العمل.",
+    descEn: "SHAHER Plumbing | Professional Services Landing Page Design and development of a dedicated landing page for \"SHAHER\" plumbing services, built as a digital portfolio to showcase professional craftsmanship and expertise. The website features a clean, practical, and highly responsive user interface that allows clients to easily explore past work, integrated with direct social media and communication links to streamline service inquiries and boost business credibility.",
+    longDescAr: "موقع تعريفي واحترافي للسباك المتميز شاهر بالرياض، قمنا بتصميمه وتطويره بالكامل ليعرف بخبراته العريضة في كشف تسربات المياه بأحدث الأجهزة الإلكترونية دون تكسير الجدران، وتأسيس وتمديد خطوط السباكة والصرف للفلل السكنية بطرق حديثة. يتيح الموقع للزوار التواصل والطلب المباشر من خلال قنوات الاتصال والواتساب الفورية بضغطة زر واحدة.",
+    longDescEn: "A high-conversion professional business platform engineered for Shaher the plumber in Riyadh. The platform is designed to list his expert water leak detection, pipe installation, and emergency maintenance services. Visitors can easily dial his mobile line or send pre-filled WhatsApp service requests with a simple tap.",
+    coverImage: "https://yasseralayub-cloud.github.io/shaher/images/30.jpg",
+    liveUrl: "https://yasseralayub-cloud.github.io/shaher/",
+    techs: [
+      "React",
+      "Click-to-Call API",
+      "WhatsApp Linker",
+      "Liquid Grid"
+    ]
   },
   {
-    id: 'p4',
-    nameAr: 'نظام أتمتة الـ ERP ولوحة تحكم الشركات الذكية',
-    nameEn: 'Enterprise System ERP Automation & Analytics',
-    categoryAr: 'مواقع وعروض شركات',
-    categoryEn: 'Corporate & Tech',
-    descAr: 'بناء لوحة تحكم سحابية متقدمة لربط مبيعات التجزئة وأتمتة اتصالات خدمة العملاء بالأجهزة والبرامج.',
-    descEn: 'Bespoke SaaS operational dashboard and enterprise CRM automations designed for high-conversion scaling.',
-    longDescAr: 'تم تنفيذ لوحة تحكم بالغة الدقة لتتبع العمليات اللوجستية، إدارة الفواتير، ومراقبة الردود الفورية للعملاء. يتميز النظام باتصال مباشر بقواعد البيانات السريعة مع إشعارات دفع وتأكيد المعاملات الفورية.',
-    longDescEn: 'A cloud-based CRM and ERP dashboard integrated with smart API webhooks, real-time analytics, secure local session data management, and beautifully exported reports.',
-    coverImage: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&q=80&w=800',
-    liveUrl: 'https://wa.me/966506572881',
-    techs: ['Node.js', 'ERP Connectors', 'Recharts', 'PostgreSQL Interface']
+    id: "p4",
+    nameAr: "نظام أتمتة الـ ERP ولوحة تحكم الشركات الذكية",
+    nameEn: "Enterprise System ERP Automation & Analytics",
+    categoryAr: "جمال وتجميل",
+    categoryEn: "Beauty & Aesthetics",
+    descAr: "ريد كاربت | واجهة رقمية بهوية فاخرة تصميم وتطوير صفحة هبوط (Landing Page) لعلامة \"ريد كاربت\"، تعكس طابع الفخامة والأناقة العالية التي تميز العلامة التجارية. يرتكز الموقع على واجهة مستخدم بصرية مذهلة، تمنح الزوار تجربة تصفح انسيابية وسريعة لاستكشاف الخدمات والمنتجات، مع دمج روابط التواصل الاجتماعي، وقنوات الحجز المباشر، والموقع الجغرافي لضمان وصول العملاء وتفاعلهم بكل سهولة وسلاسة.",
+    descEn: "Red Carpet | Luxury Branding Landing Page Design and development of a premium landing page for the \"Red Carpet\" brand, crafted to embody sophistication and luxury. The website features a visually striking user interface focused on smooth navigation and fast loading speeds, allowing visitors to seamlessly explore premium offerings. It integrates dedicated links for social channels, direct booking, and geographical location to enhance digital engagement and maximize conversion.",
+    longDescAr: "تم تنفيذ لوحة تحكم بالغة الدقة لتتبع العمليات اللوجستية، إدارة الفواتير، ومراقبة الردود الفورية للعملاء. يتميز النظام باتصال مباشر بقواعد البيانات السريعة مع إشعارات دفع وتأكيد المعاملات الفورية.",
+    longDescEn: "A cloud-based CRM and ERP dashboard integrated with smart API webhooks, real-time analytics, secure local session data management, and beautifully exported reports.",
+    coverImage: "https://redcarpetsa.github.io/REDCARPETsa/logo.png",
+    liveUrl: "https://redcarpetsa.github.io/REDCARPETsa/",
+    techs: [
+      "Node.js",
+      "ERP Connectors",
+      "Recharts",
+      "PostgreSQL Interface"
+    ]
+  },
+  {
+    id: "p_1781317718011",
+    nameAr: "منيو مطعم رحلة شواء",
+    nameEn: "Rihaat Shwaa Menu",
+    categoryAr: "تصميم وهيكلة رقمية للهوية",
+    categoryEn: "Digital Identity & Menu Design",
+    descAr: "تصميم وتطوير قائمة طعام (Menu) تفاعلية وعصرية لمطعم \"رحلة شواء\"، تعكس الهوية البصرية الفريدة للعلامة التجارية وتبرز أطباق المشويات المتنوعة بطريقة مشهية وجذابة. يركز المشروع على تقسيم وتصنيف الوجبات بوضوح لتسهيل تجربة العميل",
+    descEn: "Journey) restaurant, tailored to reflect the brand's unique visual identity and showcase grilled specialties attractively. The project emphasizes clear dish categorization to enhance the user experience (UI/UX), combined with smooth navigation to ensure quick and effortless customer ordering.",
+    longDescAr: "",
+    longDescEn: "",
+    coverImage: "https://two-opal-60.vercel.app/assets/regenerated_image_1778880416572-C0Y-crlC.jpg",
+    liveUrl: "https://two-opal-60.vercel.app/",
+    techs: [
+      "React",
+      "Tailwind CSS"
+    ]
   }
 ];
 
@@ -384,10 +422,10 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
     glassOpacity: 0.15,
     accentGlow: true
   },
-  telegramBotToken: '',
-  telegramChatId: '',
-  telegramEnabled: false,
-  externalApiUrl: '',
+  telegramBotToken: '8674182196:AAHiIJsIKC-spojpU2Ozd0NlUcQECPfM06g',
+  telegramChatId: '5241313737',
+  telegramEnabled: true,
+  externalApiUrl: 'https://6a2a4039b687a7d5cbc3621a.mockapi.io/api/v1/projects',
   externalApiKey: '',
   externalApiEnabled: false,
   externalApiMethod: 'PUT'

@@ -33,13 +33,15 @@ export default function Portfolio({ lang, theme, projects }: PortfolioProps) {
         { key: 'all', label: 'الكل' },
         { key: 'beauty', label: 'جمال وتجميل' },
         { key: 'spa', label: 'مراكز سبا واستجمام' },
-        { key: 'corporate', label: 'مواقع وعروض شركات' }
+        { key: 'corporate', label: 'مواقع وعروض شركات' },
+        { key: 'identity', label: 'تصميم وهيكلة الهوية' }
       ]
     : [
         { key: 'all', label: 'All Projects' },
         { key: 'beauty', label: 'Beauty & Aesthetics' },
         { key: 'spa', label: 'Spas & Wellness' },
-        { key: 'corporate', label: 'Corporate & Tech' }
+        { key: 'corporate', label: 'Corporate & Tech' },
+        { key: 'identity', label: 'Digital Identity & Menus' }
       ];
 
   // Map arbitrary categories to keys safely to offer seamless premium filtering!
@@ -59,6 +61,9 @@ export default function Portfolio({ lang, theme, projects }: PortfolioProps) {
     }
     if (catKey === 'corporate') {
       return catAr.includes('شركة') || catAr.includes('عروض') || catEn.includes('corporate') || catEn.includes('tech') || catAr.includes('تجاري') || catEn.includes('business') || nameEn.includes('shaher') || nameAr.includes('شاهر');
+    }
+    if (catKey === 'identity') {
+      return catAr.includes('هوية') || catAr.includes('هيكلة') || catEn.includes('identity') || catEn.includes('menu') || catAr.includes('قائمة') || catAr.includes('منيو') || nameAr.includes('منيو') || nameEn.includes('menu');
     }
     return true;
   };

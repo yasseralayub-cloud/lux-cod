@@ -66,8 +66,61 @@ export default function AdminCMS({
   const [testingTg, setTestingTg] = useState(false);
   const [tgTestResult, setTgTestResult] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
+  // Local drafts to enable zero-lag state modifications and direct fast input editing
+  const [localContent, setLocalContent] = useState<ContentSettings>(content);
+  const [localSeo, setLocalSeo] = useState<SEOSettings>(seo);
+  const [localSiteSettings, setLocalSiteSettings] = useState<SiteSettings>(siteSettings);
+
+  // 1. Downward synchronization (updates local inputs ONLY if external parent state actually changed, preventing cursor jumps)
+  useEffect(() => {
+    if (JSON.stringify(content) !== JSON.stringify(localContent)) {
+      setLocalContent(content);
+    }
+  }, [content]);
+
+  useEffect(() => {
+    if (JSON.stringify(seo) !== JSON.stringify(localSeo)) {
+      setLocalSeo(seo);
+    }
+  }, [seo]);
+
+  useEffect(() => {
+    if (JSON.stringify(siteSettings) !== JSON.stringify(localSiteSettings)) {
+      setLocalSiteSettings(siteSettings);
+    }
+  }, [siteSettings]);
+
+  // 2. Upward synchronization (automatically propagates inputs to core parent state with 250ms debounce)
+  // This makes sure modifications show up INSTANTLY across the app without having to wait for clicking Save!
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (JSON.stringify(localContent) !== JSON.stringify(content)) {
+        setContent(localContent);
+      }
+    }, 250);
+    return () => clearTimeout(handler);
+  }, [localContent, setContent, content]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (JSON.stringify(localSeo) !== JSON.stringify(seo)) {
+        setSeo(localSeo);
+      }
+    }, 250);
+    return () => clearTimeout(handler);
+  }, [localSeo, setSeo, seo]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (JSON.stringify(localSiteSettings) !== JSON.stringify(siteSettings)) {
+        setSiteSettings(localSiteSettings);
+      }
+    }, 250);
+    return () => clearTimeout(handler);
+  }, [localSiteSettings, setSiteSettings, siteSettings]);
+
   const handleTestTelegram = async () => {
-    if (!siteSettings.telegramBotToken || !siteSettings.telegramChatId) {
+    if (!localSiteSettings.telegramBotToken || !localSiteSettings.telegramChatId) {
       setTgTestResult({
         type: 'error',
         msg: lang === 'ar' ? 'يرجى إدخال التوكن Bot Token ومعرف الدردشة Chat ID أولاً!' : 'Please enter BOT TOKEN and CHAT ID first!'
@@ -85,8 +138,8 @@ export default function AdminCMS({
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          token: siteSettings.telegramBotToken,
-          chatId: siteSettings.telegramChatId,
+          token: localSiteSettings.telegramBotToken,
+          chatId: localSiteSettings.telegramChatId,
           message: lang === 'ar' 
             ? `⚡ <b>فحص الاتصال من لوحة التحكم!</b>\n\nلقد قمت بفحص ربط بوت الإشعارات لوكالة LuxCod بنجاح.\n\n📱 <i>هذا يعني أن الإشعارات والربط يعملان بشكل سليم الآن!</i>`
             : `⚡ <b>Telegram Bot Status: OK!</b>\n\nYour LuxCod notifications pipeline has been tested successfully.\n\n📱 <i>Connection is secure and online.</i>`
@@ -339,18 +392,21 @@ export default function AdminCMS({
   // 4. HOMEPAGE & CMS TEXTS
   const handleSaveHomepageTexts = (e: React.FormEvent) => {
     e.preventDefault();
+    setContent(localContent);
     triggerSuccess(lang === 'ar' ? 'تم حفظ إعدادات الصفحة الرئيسية بنجاح!' : 'Homepage settings saved successfully!');
   };
 
   // 5. SEO SETTINGS
   const handleSaveSEO = (e: React.FormEvent) => {
     e.preventDefault();
+    setSeo(localSeo);
     triggerSuccess(lang === 'ar' ? 'تم تحديث قواعد وبطاقات الـ SEO محلياً!' : 'SEO tags fully integrated and cached!');
   };
 
   // 6. GENERAL CONFIG
   const handleSaveSiteSettings = (e: React.FormEvent) => {
     e.preventDefault();
+    setSiteSettings(localSiteSettings);
     triggerSuccess(lang === 'ar' ? 'تم تخزين بيانات الاتصال والحسابات بنجاح!' : 'Contact settings synced!');
   };
 
@@ -874,8 +930,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                   <label className="block text-xs font-mono uppercase text-slate-400 mb-2">{lang === 'ar' ? 'العنوان الرئيسي للـ Hero (بالعربية)' : 'Hero headline (Ar)'}</label>
                   <input
                     type="text"
-                    value={content.heroTitleAr}
-                    onChange={(e) => setContent({ ...content, heroTitleAr: e.target.value })}
+                    value={localContent.heroTitleAr}
+                    onChange={(e) => setLocalContent({ ...localContent, heroTitleAr: e.target.value })}
                     className="w-full p-2.5 rounded-lg border text-sm bg-slate-950 border-slate-800 text-white focus:outline-none focus:border-cyan-500"
                   />
                 </div>
@@ -883,8 +939,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                   <label className="block text-xs font-mono uppercase text-slate-400 mb-2">{lang === 'ar' ? 'العنوان الرئيسي للـ Hero (بالإنكليزية)' : 'Hero headline (En)'}</label>
                   <input
                     type="text"
-                    value={content.heroTitleEn}
-                    onChange={(e) => setContent({ ...content, heroTitleEn: e.target.value })}
+                    value={localContent.heroTitleEn}
+                    onChange={(e) => setLocalContent({ ...localContent, heroTitleEn: e.target.value })}
                     className="w-full p-2.5 rounded-lg border text-sm bg-slate-950 border-slate-800 text-white focus:outline-none focus:border-cyan-500"
                   />
                 </div>
@@ -894,8 +950,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                 <label className="block text-xs font-mono uppercase text-slate-400 mb-2">{lang === 'ar' ? 'العنوان الفرعي للـ Hero (العربية)' : 'Hero Subsubtitle (Ar)'}</label>
                 <textarea
                   rows={3}
-                  value={content.heroSubtitleAr}
-                  onChange={(e) => setContent({ ...content, heroSubtitleAr: e.target.value })}
+                  value={localContent.heroSubtitleAr}
+                  onChange={(e) => setLocalContent({ ...localContent, heroSubtitleAr: e.target.value })}
                   className="w-full p-2.5 rounded-lg border text-sm bg-slate-950 border-slate-800 text-white focus:outline-none focus:border-cyan-500"
                 />
               </div>
@@ -904,8 +960,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                 <label className="block text-xs font-mono uppercase text-slate-400 mb-2">{lang === 'ar' ? 'العنوان الفرعي للـ Hero (الإنكليزية)' : 'Hero Subsubtitle (En)'}</label>
                 <textarea
                   rows={3}
-                  value={content.heroSubtitleEn}
-                  onChange={(e) => setContent({ ...content, heroSubtitleEn: e.target.value })}
+                  value={localContent.heroSubtitleEn}
+                  onChange={(e) => setLocalContent({ ...localContent, heroSubtitleEn: e.target.value })}
                   className="w-full p-2.5 rounded-lg border text-sm bg-slate-950 border-slate-800 text-white focus:outline-none focus:border-cyan-500"
                 />
               </div>
@@ -918,8 +974,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                     <label className="block text-[10px] uppercase font-mono tracking-wider text-slate-400 mb-1">{lang === 'ar' ? 'المشاريع المنفذة' : 'Projects Completed'}</label>
                     <input
                       type="number"
-                      value={content.statProjects}
-                      onChange={(e) => setContent({ ...content, statProjects: parseInt(e.target.value) || 0 })}
+                      value={localContent.statProjects}
+                      onChange={(e) => setLocalContent({ ...localContent, statProjects: parseInt(e.target.value) || 0 })}
                       className="w-full p-2 rounded border text-xs bg-slate-950 border-slate-800 text-white"
                     />
                   </div>
@@ -927,8 +983,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                     <label className="block text-[10px] uppercase font-mono tracking-wider text-slate-400 mb-1">{lang === 'ar' ? 'العملاء السعداء' : 'Happy Clients'}</label>
                     <input
                       type="number"
-                      value={content.statCustomers}
-                      onChange={(e) => setContent({ ...content, statCustomers: parseInt(e.target.value) || 0 })}
+                      value={localContent.statCustomers}
+                      onChange={(e) => setLocalContent({ ...localContent, statCustomers: parseInt(e.target.value) || 0 })}
                       className="w-full p-2 rounded border text-xs bg-slate-950 border-slate-800 text-white"
                     />
                   </div>
@@ -936,8 +992,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                     <label className="block text-[10px] uppercase font-mono tracking-wider text-slate-400 mb-1">{lang === 'ar' ? 'سنوات الخبرة' : 'Years Experience'}</label>
                     <input
                       type="number"
-                      value={content.statExperience}
-                      onChange={(e) => setContent({ ...content, statExperience: parseInt(e.target.value) || 0 })}
+                      value={localContent.statExperience}
+                      onChange={(e) => setLocalContent({ ...localContent, statExperience: parseInt(e.target.value) || 0 })}
                       className="w-full p-2 rounded border text-xs bg-slate-950 border-slate-800 text-white"
                     />
                   </div>
@@ -945,8 +1001,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                     <label className="block text-[10px] uppercase font-mono tracking-wider text-slate-400 mb-1">{lang === 'ar' ? 'الخدمات المهيأة' : 'Services Vertical'}</label>
                     <input
                       type="number"
-                      value={content.statServices}
-                      onChange={(e) => setContent({ ...content, statServices: parseInt(e.target.value) || 0 })}
+                      value={localContent.statServices}
+                      onChange={(e) => setLocalContent({ ...localContent, statServices: parseInt(e.target.value) || 0 })}
                       className="w-full p-2 rounded border text-xs bg-slate-950 border-slate-800 text-white"
                     />
                   </div>
@@ -955,7 +1011,7 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
 
               <button
                 type="submit"
-                className="px-6 py-2.5 rounded-xl text-slate-950 font-bold text-xs bg-cyan-400 flex items-center gap-1.5 cursor-pointer"
+                className="px-6 py-2.5 rounded-xl text-slate-950 font-bold text-xs bg-cyan-400 flex items-center gap-1.5 cursor-pointer hover:bg-cyan-300 transition-all select-none"
               >
                 <Save className="w-4 h-4 text-slate-950" />
                 <span>{lang === 'ar' ? 'حفظ التعديلات الحية' : 'Save Homepage Content Settings'}</span>
@@ -974,8 +1030,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                     <label className="block text-xs uppercase text-slate-400 mb-2">{lang === 'ar' ? 'عنوان الميتا (العربية)' : 'Meta title (Ar)'}</label>
                     <input
                       type="text"
-                      value={seo.metaTitleAr}
-                      onChange={(e) => setSeo({ ...seo, metaTitleAr: e.target.value })}
+                      value={localSeo.metaTitleAr}
+                      onChange={(e) => setLocalSeo({ ...localSeo, metaTitleAr: e.target.value })}
                       className="w-full p-2.5 rounded-lg border text-sm bg-slate-950 border-slate-800 text-slate-100"
                     />
                   </div>
@@ -983,8 +1039,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                     <label className="block text-xs uppercase text-slate-400 mb-2">{lang === 'ar' ? 'عنوان الميتا (الانكليزية)' : 'Meta title (En)'}</label>
                     <input
                       type="text"
-                      value={seo.metaTitleEn}
-                      onChange={(e) => setSeo({ ...seo, metaTitleEn: e.target.value })}
+                      value={localSeo.metaTitleEn}
+                      onChange={(e) => setLocalSeo({ ...localSeo, metaTitleEn: e.target.value })}
                       className="w-full p-2.5 rounded-lg border text-sm bg-slate-950 border-slate-800 text-slate-100"
                     />
                   </div>
@@ -994,8 +1050,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                   <label className="block text-xs uppercase text-slate-400 mb-2">{lang === 'ar' ? 'وصف الميتا الترويجي (العربية)' : 'Meta Descriptor text (Ar)'}</label>
                   <textarea
                     rows={2}
-                    value={seo.metaDescAr}
-                    onChange={(e) => setSeo({ ...seo, metaDescAr: e.target.value })}
+                    value={localSeo.metaDescAr}
+                    onChange={(e) => setLocalSeo({ ...localSeo, metaDescAr: e.target.value })}
                     className="w-full p-2.5 rounded-lg border text-sm bg-slate-950 border-slate-800 text-slate-100"
                   />
                 </div>
@@ -1004,8 +1060,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                   <label className="block text-xs uppercase text-slate-400 mb-2">{lang === 'ar' ? 'وصف الميتا الترويجي (الإنكليزية)' : 'Meta Descriptor text (En)'}</label>
                   <textarea
                     rows={2}
-                    value={seo.metaDescEn}
-                    onChange={(e) => setSeo({ ...seo, metaDescEn: e.target.value })}
+                    value={localSeo.metaDescEn}
+                    onChange={(e) => setLocalSeo({ ...localSeo, metaDescEn: e.target.value })}
                     className="w-full p-2.5 rounded-lg border text-sm bg-slate-950 border-slate-800 text-slate-100"
                   />
                 </div>
@@ -1013,8 +1069,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                 <div className="flex items-center gap-4 py-2 border-y border-slate-800">
                   <span className="text-xs uppercase text-slate-400">{lang === 'ar' ? 'نوع بطاقات Open Graph:' : 'OG:Type standard:'}</span>
                   <select
-                    value={seo.ogType}
-                    onChange={(e) => setSeo({ ...seo, ogType: e.target.value })}
+                    value={localSeo.ogType}
+                    onChange={(e) => setLocalSeo({ ...localSeo, ogType: e.target.value })}
                     className="p-1.5 rounded border text-xs bg-slate-950 border-slate-805 text-white"
                   >
                     <option value="website">website (standard)</option>
@@ -1025,7 +1081,7 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
 
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl text-slate-950 font-bold text-xs bg-cyan-400 flex items-center gap-1.5 cursor-pointer"
+                  className="px-6 py-2.5 rounded-xl text-slate-950 font-bold text-xs bg-cyan-400 flex items-center gap-1.5 cursor-pointer hover:bg-cyan-300 transition-all select-none"
                 >
                   <Save className="w-4 h-4 text-slate-950" />
                   <span>{lang === 'ar' ? 'تحديث وتطبيق الـ SEO' : 'Commit SEO Settings'}</span>
@@ -1069,8 +1125,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                   <label className="block text-xs text-slate-400 mb-2">{lang === 'ar' ? 'رقم الهاتف الرسمي للاتصال' : 'Direct Call Line phone'}</label>
                   <input
                     type="text"
-                    value={siteSettings.phone}
-                    onChange={(e) => setSiteSettings({ ...siteSettings, phone: e.target.value })}
+                    value={localSiteSettings.phone}
+                    onChange={(e) => setLocalSiteSettings({ ...localSiteSettings, phone: e.target.value })}
                     className="w-full p-2.5 rounded-lg border text-sm bg-slate-950 border-slate-800 text-white"
                   />
                 </div>
@@ -1078,8 +1134,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                   <label className="block text-xs text-slate-400 mb-2">{lang === 'ar' ? 'رقم الواتساب المتصل بالرسائل الآلية' : 'API Whatsapp Target telephone'}</label>
                   <input
                     type="text"
-                    value={siteSettings.whatsapp}
-                    onChange={(e) => setSiteSettings({ ...siteSettings, whatsapp: e.target.value })}
+                    value={localSiteSettings.whatsapp}
+                    onChange={(e) => setLocalSiteSettings({ ...localSiteSettings, whatsapp: e.target.value })}
                     className="w-full p-2.5 rounded-lg border text-sm bg-slate-950 border-slate-800 text-white"
                   />
                   <span className="text-[9px] opacity-40 leading-none block mt-1">{lang === 'ar' ? 'اكتبه كاملا وبدون علامات زائد (مثال: 966506572881)' : 'Write in full international format (e.g. 966506572881)'}</span>
@@ -1088,8 +1144,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                   <label className="block text-xs text-slate-400 mb-2">{lang === 'ar' ? 'البريد الإلكتروني للوكالة' : 'Corporate Official Email'}</label>
                   <input
                     type="text"
-                    value={siteSettings.email}
-                    onChange={(e) => setSiteSettings({ ...siteSettings, email: e.target.value })}
+                    value={localSiteSettings.email}
+                    onChange={(e) => setLocalSiteSettings({ ...localSiteSettings, email: e.target.value })}
                     className="w-full p-2.5 rounded-lg border text-sm bg-slate-950 border-slate-800 text-white"
                   />
                 </div>
@@ -1100,8 +1156,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                   <label className="block text-xs text-slate-400 mb-2">Twitter Profile Link</label>
                   <input
                     type="text"
-                    value={siteSettings.twitter}
-                    onChange={(e) => setSiteSettings({ ...siteSettings, twitter: e.target.value })}
+                    value={localSiteSettings.twitter}
+                    onChange={(e) => setLocalSiteSettings({ ...localSiteSettings, twitter: e.target.value })}
                     className="w-full p-2.5 rounded-lg border text-sm bg-slate-950 border-slate-800 text-white"
                   />
                 </div>
@@ -1109,8 +1165,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                   <label className="block text-xs text-slate-400 mb-2">Instagram Link</label>
                   <input
                     type="text"
-                    value={siteSettings.instagram}
-                    onChange={(e) => setSiteSettings({ ...siteSettings, instagram: e.target.value })}
+                    value={localSiteSettings.instagram}
+                    onChange={(e) => setLocalSiteSettings({ ...localSiteSettings, instagram: e.target.value })}
                     className="w-full p-2.5 rounded-lg border text-sm bg-slate-950 border-slate-800 text-white"
                   />
                 </div>
@@ -1133,22 +1189,22 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                     <input 
                       type="checkbox" 
                       className="sr-only peer" 
-                      checked={!!siteSettings.telegramEnabled} 
-                      onChange={(e) => setSiteSettings({ ...siteSettings, telegramEnabled: e.target.checked })}
+                      checked={!!localSiteSettings.telegramEnabled} 
+                      onChange={(e) => setLocalSiteSettings({ ...localSiteSettings, telegramEnabled: e.target.checked })}
                     />
                     <div className="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-300 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500"></div>
                   </label>
                 </div>
 
-                {siteSettings.telegramEnabled && (
+                {localSiteSettings.telegramEnabled && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                     <div>
                       <label className="block text-[10px] text-slate-300 font-mono mb-2">BOT TOKEN</label>
                       <input
                         type="text"
                         placeholder="e.g. 123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ"
-                        value={siteSettings.telegramBotToken || ''}
-                        onChange={(e) => setSiteSettings({ ...siteSettings, telegramBotToken: e.target.value })}
+                        value={localSiteSettings.telegramBotToken || ''}
+                        onChange={(e) => setLocalSiteSettings({ ...localSiteSettings, telegramBotToken: e.target.value })}
                         className="w-full p-2.5 rounded-lg border text-xs bg-slate-950 border-slate-800 text-white font-mono"
                       />
                     </div>
@@ -1157,8 +1213,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                       <input
                         type="text"
                         placeholder="e.g. 987654321 or @my_channel"
-                        value={siteSettings.telegramChatId || ''}
-                        onChange={(e) => setSiteSettings({ ...siteSettings, telegramChatId: e.target.value })}
+                        value={localSiteSettings.telegramChatId || ''}
+                        onChange={(e) => setLocalSiteSettings({ ...localSiteSettings, telegramChatId: e.target.value })}
                         className="w-full p-2.5 rounded-lg border text-xs bg-slate-950 border-slate-800 text-white font-mono"
                       />
                     </div>
@@ -1166,8 +1222,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                       <button
                         type="button"
                         onClick={handleTestTelegram}
-                        disabled={testingTg || !siteSettings.telegramBotToken || !siteSettings.telegramChatId}
-                        className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer animate-pulse"
+                        disabled={testingTg || !localSiteSettings.telegramBotToken || !localSiteSettings.telegramChatId}
+                        className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer hover:shadow-lg transition-all"
                       >
                         {testingTg ? (
                           <span>{lang === 'ar' ? 'جاري فحص الاتصال...' : 'Testing connection...'}</span>
@@ -1198,7 +1254,7 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-extrabold text-xs text-cyan-400 flex items-center gap-1.5 uppercase tracking-wide">
-                      <Sparkles className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+                      <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
                       {lang === 'ar' ? 'الربط الديناميكي ومزامنة البيانات مع API خارجي' : 'External Dynamic API Database Integration'}
                     </h4>
                     <p className="text-[10px] text-slate-400 mt-1 max-w-xl">
@@ -1211,14 +1267,14 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                     <input 
                       type="checkbox" 
                       className="sr-only peer" 
-                      checked={!!siteSettings.externalApiEnabled} 
-                      onChange={(e) => setSiteSettings({ ...siteSettings, externalApiEnabled: e.target.checked })}
+                      checked={!!localSiteSettings.externalApiEnabled} 
+                      onChange={(e) => setLocalSiteSettings({ ...localSiteSettings, externalApiEnabled: e.target.checked })}
                     />
                     <div className="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-300 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-400"></div>
                   </label>
                 </div>
 
-                {siteSettings.externalApiEnabled && (
+                {localSiteSettings.externalApiEnabled && (
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-4 pt-2">
                     <div className="md:col-span-6">
                       <label className="block text-[10px] text-slate-300 font-mono mb-2">
@@ -1228,8 +1284,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                         type="url"
                         required
                         placeholder="https://api.jsonbin.io/v3/b/MY_BIN_ID or custom server"
-                        value={siteSettings.externalApiUrl || ''}
-                        onChange={(e) => setSiteSettings({ ...siteSettings, externalApiUrl: e.target.value })}
+                        value={localSiteSettings.externalApiUrl || ''}
+                        onChange={(e) => setLocalSiteSettings({ ...localSiteSettings, externalApiUrl: e.target.value })}
                         className="w-full p-2.5 rounded-lg border text-xs bg-slate-950 border-slate-800 text-white font-mono"
                       />
                       <p className="text-[9px] text-slate-500 mt-1">
@@ -1246,8 +1302,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                       <input
                         type="password"
                         placeholder="e.g. Bearer token or master-key"
-                        value={siteSettings.externalApiKey || ''}
-                        onChange={(e) => setSiteSettings({ ...siteSettings, externalApiKey: e.target.value })}
+                        value={localSiteSettings.externalApiKey || ''}
+                        onChange={(e) => setLocalSiteSettings({ ...localSiteSettings, externalApiKey: e.target.value })}
                         className="w-full p-2.5 rounded-lg border text-xs bg-slate-950 border-slate-800 text-white font-mono"
                       />
                       <p className="text-[9px] text-slate-500 mt-1">
@@ -1262,8 +1318,8 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
                         {lang === 'ar' ? 'طريقة الحفظ' : 'HTTP METHOD'}
                       </label>
                       <select
-                        value={siteSettings.externalApiMethod || 'PUT'}
-                        onChange={(e) => setSiteSettings({ ...siteSettings, externalApiMethod: e.target.value as any })}
+                        value={localSiteSettings.externalApiMethod || 'PUT'}
+                        onChange={(e) => setLocalSiteSettings({ ...localSiteSettings, externalApiMethod: e.target.value as any })}
                         className="w-full p-2.5 rounded-lg border text-xs bg-slate-950 border-slate-800 text-slate-300 font-mono"
                       >
                         <option value="PUT">PUT</option>
@@ -1276,7 +1332,7 @@ Sitemap: https://luxcode.sa/sitemap.xml`;
 
               <button
                 type="submit"
-                className="px-6 py-2.5 rounded-xl text-slate-950 font-bold text-xs bg-cyan-400 flex items-center gap-1.5 cursor-pointer hover:bg-cyan-300 transition-all select-none"
+                className="px-6 py-2.5 rounded-xl text-slate-950 font-bold text-xs bg-cyan-400 flex items-center gap-1.5 cursor-pointer hover:bg-cyan-300 transition-all select-none hover:shadow-lg transition-all"
               >
                 <Save className="w-4 h-4 text-slate-950" />
                 <span>{lang === 'ar' ? 'حفظ إعدادات المخدم والـ API' : 'Apply Settings Parameter'}</span>

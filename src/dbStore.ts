@@ -36,11 +36,16 @@ export const dbStore = {
   },
 
   getServices(): Service[] {
-    return DEFAULT_SERVICES;
+    const data = localStorage.getItem('luxcod_services');
+    if (!data) {
+      localStorage.setItem('luxcod_services', JSON.stringify(DEFAULT_SERVICES));
+      return DEFAULT_SERVICES;
+    }
+    return JSON.parse(data);
   },
 
   saveServices(services: Service[]) {
-    // Kept static as requested by the user
+    localStorage.setItem('luxcod_services', JSON.stringify(services));
   },
 
   getReviews(): Review[] {

@@ -26,6 +26,7 @@ export default function Navigation({
   siteSettings
 }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [showBanner, setShowBanner] = useState(true);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -98,11 +99,45 @@ export default function Navigation({
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${
-      theme === 'dark' 
-        ? 'bg-slate-950/80 border-slate-900 text-slate-100' 
-        : 'bg-white/85 border-slate-200 text-slate-800'
-    } backdrop-blur-md`}>
+    <div className="fixed top-0 left-0 right-0 z-50" id="top-navigation-container">
+      {/* Dynamic Top Announcement Banner for Free Consultation */}
+      {showBanner && (
+        <div className="bg-gradient-to-r from-cyan-600 via-indigo-600 to-purple-600 text-white py-2 px-4 text-[11px] sm:text-xs font-semibold relative flex items-center justify-between shadow-lg select-none" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+          <div className="max-w-7xl mx-auto flex items-center justify-center gap-3 flex-wrap">
+            <span className="flex items-center gap-1.5">
+              <span className="relative flex h-2 w-2 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span>
+                {lang === 'ar' 
+                  ? '🎁 لفترة محدودة: احصل على استشارة تقنية مجانية وخطة عمل متكاملة لمشروعك البرمجي أو أتمتتك!' 
+                  : '🎁 Limited Slot: Get a free software consultation & complete business blueprint today!'}
+              </span>
+            </span>
+            <a 
+              href="#contact" 
+              className="bg-white text-slate-900 hover:bg-slate-100 font-bold px-2.5 py-1 rounded-lg text-[10px] sm:text-xs transition-all shadow hover:scale-105 active:scale-95 duration-150 shrink-0 inline-flex items-center gap-1"
+            >
+              <span>{lang === 'ar' ? 'احجز استشارتك مجاناً 📞' : 'Book Free Consultation 📞'}</span>
+            </a>
+          </div>
+          <button 
+            onClick={() => setShowBanner(false)}
+            className="text-white hover:text-cyan-200 p-0.5 rounded-full hover:bg-white/10 transition-colors cursor-pointer absolute right-2 top-1/2 -translate-y-1/2 rtl:left-2 rtl:right-auto"
+            title="إغلاق / Close"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Main Navigation */}
+      <nav className={`transition-all duration-300 border-b ${
+        theme === 'dark' 
+          ? 'bg-slate-950/85 border-slate-900 text-slate-100' 
+          : 'bg-white/90 border-slate-200 text-slate-800'
+      } backdrop-blur-md`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
@@ -139,6 +174,18 @@ export default function Navigation({
           {/* Utilities & Buttons */}
           <div className="hidden md:flex items-center gap-4">
             
+            {/* Free Consultation Highlight Button */}
+            <a
+              href="#contact"
+              className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-600 shadow-lg shadow-cyan-500/15 hover:shadow-cyan-500/35 hover:scale-[1.03] active:scale-[0.97] transition-all flex items-center gap-2 transform duration-150 cursor-pointer"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span>{lang === 'ar' ? 'استشارة مجانية 📞' : 'Free Consultation 📞'}</span>
+            </a>
+
             {/* Lang Switch */}
             <button
               onClick={handleLanguageToggle}
@@ -219,9 +266,24 @@ export default function Navigation({
 
       {/* Mobile Drawer */}
       {isOpen && (
-        <div className={`md:hidden border-t py-4 px-4 space-y-3 ${
+        <div className={`md:hidden border-t py-4 px-4 space-y-4 ${
           theme === 'dark' ? 'bg-slate-950 border-slate-900' : 'bg-white border-slate-200'
         }`}>
+          {activeView === 'home' && (
+            <div className="pb-2 border-b border-slate-800/10 dark:border-slate-800/45">
+              <a
+                href="#contact"
+                onClick={() => setIsOpen(false)}
+                className="w-full py-3 px-4 rounded-xl font-bold text-sm text-center text-white bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-600 shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span>{lang === 'ar' ? 'احجز استشارة مجانية الآن 📞' : 'Book Free Consultation 📞'}</span>
+              </a>
+            </div>
+          )}
           {activeView === 'home' && navItems[lang].map((item) => (
             <a
               key={item.href}
@@ -312,5 +374,6 @@ export default function Navigation({
         </div>
       )}
     </nav>
+    </div>
   );
 }

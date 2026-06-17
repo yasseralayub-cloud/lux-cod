@@ -171,6 +171,31 @@ async function startServer() {
     }
   });
 
+  // Explicit standard routes for SEO engines
+  app.get('/sitemap.xml', (req, res) => {
+    const sitemapPath = process.env.NODE_ENV !== 'production'
+      ? path.join(process.cwd(), 'public', 'sitemap.xml')
+      : path.join(process.cwd(), 'dist', 'sitemap.xml');
+    
+    if (fs.existsSync(sitemapPath)) {
+      res.header('Content-Type', 'application/xml; charset=utf-8');
+      return res.sendFile(sitemapPath);
+    }
+    return res.status(404).send('Sitemap not found');
+  });
+
+  app.get('/robots.txt', (req, res) => {
+    const robotsPath = process.env.NODE_ENV !== 'production'
+      ? path.join(process.cwd(), 'public', 'robots.txt')
+      : path.join(process.cwd(), 'dist', 'robots.txt');
+    
+    if (fs.existsSync(robotsPath)) {
+      res.header('Content-Type', 'text/plain; charset=utf-8');
+      return res.sendFile(robotsPath);
+    }
+    return res.status(404).send('Robots.txt not found');
+  });
+
   // Vite Integration
   if (process.env.NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vite');

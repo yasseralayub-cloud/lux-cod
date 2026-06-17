@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Dark elegant slate-gray/blue background gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0f1d" />
+      <stop offset="100%" stop-color="#070a13" />
+    </linearGradient>
+    
+    <!-- Neon glowing cyan to deep violet gradient for LC letters -->
+    <linearGradient id="neonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F0FF" />
+      <stop offset="50%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#EC4899" />
+    </linearGradient>
+
+    <!-- Outer ring gradient with glowing neon effect -->
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F0FF" />
+      <stop offset="100%" stop-color="#8B5CF6" />
+    </linearGradient>
+
+    <!-- Subtle drop shadow filter for premium depth -->
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Solid rounded rectangle background -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)" />
+
+  <!-- Outer Neon circular track -->
+  <circle cx="256" cy="256" r="220" fill="none" stroke="url(#ringGrad)" stroke-width="12" opacity="0.3" />
+  
+  <!-- Outer Neon circular ring (glowing) -->
+  <circle cx="256" cy="256" r="220" fill="none" stroke="url(#ringGrad)" stroke-width="12" filter="url(#neonGlow)" stroke-dasharray="1000" stroke-dashoffset="250" />
+
+  <!-- Stylized central vector letters "L" and "C" intertwined -->
+  <g filter="url(#neonGlow)">
+    <!-- Letter 'L' path -->
+    <path d="M150 140 H184 V330 H320 V364 H150 Z" fill="url(#neonGrad)" />
+    
+    <!-- Intertwined Letter 'C' path -->
+    <path d="M362 195 C345 160 305 140 260 140 C190 140 145 195 145 256 C145 317 190 372 260 372 C312 372 348 350 365 315 L335 295 C320 320 295 338 260 338 C215 338 181 300 181 256 C181 212 215 174 260 174 C292 174 318 190 332 215 Z" fill="url(#neonGrad)" />
+  </g>
+</svg>

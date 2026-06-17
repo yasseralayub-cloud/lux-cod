@@ -444,6 +444,39 @@ export default function App() {
     return () => clearTimeout(handler);
   }, [seo, lang, isLoaded, isAdmin]); // Updates title matching exact active language settings
 
+  // Global SEO effect: Dynamically sync meta headers & favicons for all visitors on language/SEO changes
+  useEffect(() => {
+    if (!isLoaded) return;
+    const activeLang = lang || 'ar';
+    document.title = activeLang === 'ar' ? seo.metaTitleAr : seo.metaTitleEn;
+    
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement('meta');
+      metaDesc.setAttribute('name', 'description');
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.setAttribute('content', activeLang === 'ar' ? seo.metaDescAr : seo.metaDescEn);
+
+    // Sync icons
+    let faviconLink = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
+    if (!faviconLink) {
+      faviconLink = document.createElement('link');
+      faviconLink.setAttribute('rel', 'icon');
+      faviconLink.setAttribute('type', 'image/svg+xml');
+      document.head.appendChild(faviconLink);
+    }
+    faviconLink.setAttribute('href', '/favicon.svg');
+
+    let appleIconLink = document.querySelector('link[rel="apple-touch-icon"]') as HTMLLinkElement;
+    if (!appleIconLink) {
+      appleIconLink = document.createElement('link');
+      appleIconLink.setAttribute('rel', 'apple-touch-icon');
+      document.head.appendChild(appleIconLink);
+    }
+    appleIconLink.setAttribute('href', '/logo.svg');
+  }, [seo, lang, isLoaded]);
+
   useEffect(() => {
     if (!isLoaded || !isAdmin) return;
     dbStore.saveSiteSettings(siteSettings);

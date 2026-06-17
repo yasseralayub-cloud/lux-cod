@@ -96,6 +96,24 @@ export const dbStore = {
       document.head.appendChild(metaDesc);
     }
     metaDesc.setAttribute('content', activeLang === 'ar' ? seo.metaDescAr : seo.metaDescEn);
+
+    // Dynamic favicon updates
+    let faviconLink = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
+    if (!faviconLink) {
+      faviconLink = document.createElement('link');
+      faviconLink.setAttribute('rel', 'icon');
+      faviconLink.setAttribute('type', 'image/svg+xml');
+      document.head.appendChild(faviconLink);
+    }
+    faviconLink.setAttribute('href', '/favicon.svg');
+
+    let appleIconLink = document.querySelector('link[rel="apple-touch-icon"]') as HTMLLinkElement;
+    if (!appleIconLink) {
+      appleIconLink = document.createElement('link');
+      appleIconLink.setAttribute('rel', 'apple-touch-icon');
+      document.head.appendChild(appleIconLink);
+    }
+    appleIconLink.setAttribute('href', '/logo.svg');
   },
 
   getSiteSettings(): SiteSettings {

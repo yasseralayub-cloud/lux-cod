@@ -474,7 +474,7 @@ export default function App() {
       appleIconLink.setAttribute('rel', 'apple-touch-icon');
       document.head.appendChild(appleIconLink);
     }
-    appleIconLink.setAttribute('href', '/logo.svg');
+    appleIconLink.setAttribute('href', '/apple-touch-icon.png');
   }, [seo, lang, isLoaded]);
 
   useEffect(() => {
@@ -852,7 +852,7 @@ export default function App() {
                   {lang === 'ar' ? 'تواصل عبر واتساب فوراً' : 'Consult via WhatsApp CRM'}
                 </button>
                 <button
-                  onClick={() => handleHomeAnchorNavigation('#contact')}
+                  onClick={() => handleHomeAnchorNavigation('#consultation-form-section')}
                   className={`w-full sm:w-auto px-8 py-4 rounded-xl font-semibold text-sm border hover:bg-slate-900/10 transition-colors cursor-pointer ${
                     theme === 'dark' ? 'border-slate-800 text-slate-200 hover:text-white' : 'border-slate-250 text-slate-800 hover:bg-slate-100'
                   }`}

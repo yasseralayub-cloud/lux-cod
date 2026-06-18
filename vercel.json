@@ -10,6 +10,26 @@
       "destination": "/robots.txt"
     },
     {
+      "source": "/manifest.json",
+      "destination": "/manifest.json"
+    },
+    {
+      "source": "/apple-touch-icon.png",
+      "destination": "/apple-touch-icon.png"
+    },
+    {
+      "source": "/icon-192.png",
+      "destination": "/icon-192.png"
+    },
+    {
+      "source": "/icon-512.png",
+      "destination": "/icon-512.png"
+    },
+    {
+      "source": "/favicon-96x96.png",
+      "destination": "/favicon-96x96.png"
+    },
+    {
       "source": "/favicon.svg",
       "destination": "/favicon.svg"
     },

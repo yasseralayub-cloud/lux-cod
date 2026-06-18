@@ -141,7 +141,7 @@ export default function Contact({ lang, theme, phone, email, whatsapp, onAddLead
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
           
           {/* Quick Inquiry form */}
-          <div className="lg:col-span-6 flex flex-col justify-between">
+          <div id="consultation-form-section" className="lg:col-span-6 flex flex-col justify-between scroll-mt-28">
             <div className={`p-6 sm:p-8 rounded-2xl border h-full flex flex-col justify-between ${
               theme === 'dark' ? 'bg-slate-900/30 border-slate-900' : 'bg-white border-slate-200 shadow-xl shadow-black/[0.03]'
             }`}>

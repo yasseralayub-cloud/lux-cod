@@ -116,7 +116,7 @@ export default function Navigation({
               </span>
             </span>
             <a 
-              href="#contact" 
+              href="#consultation-form-section" 
               className="bg-white text-slate-900 hover:bg-slate-100 font-bold px-2.5 py-1 rounded-lg text-[10px] sm:text-xs transition-all shadow hover:scale-105 active:scale-95 duration-150 shrink-0 inline-flex items-center gap-1"
             >
               <span>{lang === 'ar' ? 'احجز استشارتك مجاناً 📞' : 'Book Free Consultation 📞'}</span>
@@ -176,7 +176,7 @@ export default function Navigation({
             
             {/* Free Consultation Highlight Button */}
             <a
-              href="#contact"
+              href="#consultation-form-section"
               className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-600 shadow-lg shadow-cyan-500/15 hover:shadow-cyan-500/35 hover:scale-[1.03] active:scale-[0.97] transition-all flex items-center gap-2 transform duration-150 cursor-pointer"
             >
               <span className="relative flex h-2 w-2">
@@ -272,7 +272,7 @@ export default function Navigation({
           {activeView === 'home' && (
             <div className="pb-2 border-b border-slate-800/10 dark:border-slate-800/45">
               <a
-                href="#contact"
+                href="#consultation-form-section"
                 onClick={() => setIsOpen(false)}
                 className="w-full py-3 px-4 rounded-xl font-bold text-sm text-center text-white bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-600 shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2"
               >

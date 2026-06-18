@@ -113,7 +113,7 @@ export const dbStore = {
       appleIconLink.setAttribute('rel', 'apple-touch-icon');
       document.head.appendChild(appleIconLink);
     }
-    appleIconLink.setAttribute('href', '/logo.svg');
+    appleIconLink.setAttribute('href', '/apple-touch-icon.png');
   },
 
   getSiteSettings(): SiteSettings {

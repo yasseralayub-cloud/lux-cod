@@ -196,6 +196,30 @@ async function startServer() {
     return res.status(404).send('Robots.txt not found');
   });
 
+  // Explicit route for Web App Manifest
+  app.get('/manifest.json', (req, res) => {
+    const manifestPath = process.env.NODE_ENV !== 'production'
+      ? path.join(process.cwd(), 'public', 'manifest.json')
+      : path.join(process.cwd(), 'dist', 'manifest.json');
+    if (fs.existsSync(manifestPath)) {
+      res.header('Content-Type', 'application/json; charset=utf-8');
+      return res.sendFile(manifestPath);
+    }
+    return res.status(404).send('Manifest not found');
+  });
+
+  // Explicit route for Apple touch icon standard
+  app.get('/apple-touch-icon.png', (req, res) => {
+    const touchPath = process.env.NODE_ENV !== 'production'
+      ? path.join(process.cwd(), 'public', 'apple-touch-icon.png')
+      : path.join(process.cwd(), 'dist', 'apple-touch-icon.png');
+    if (fs.existsSync(touchPath)) {
+      res.header('Content-Type', 'image/png');
+      return res.sendFile(touchPath);
+    }
+    return res.status(404).send('apple touch icon not found');
+  });
+
   // Vite Integration
   if (process.env.NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vite');
